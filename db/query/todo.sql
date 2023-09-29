@@ -19,3 +19,9 @@ set title   = $2,
     content = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: ToggleToDoDone :one
+UPDATE todo
+set done = NOT todo.done
+where id = $1
+RETURNING *;

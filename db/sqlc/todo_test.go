@@ -69,5 +69,20 @@ func TestUpdateToDo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, arg.Title, updatedTodo.Title)
 	require.Equal(t, arg.Content, updatedTodo.Content)
+}
+
+func TestToggleDone(t *testing.T) {
+	user := createRandomUser(t)
+	todo1 := createRandomToDo(t, user)
+	require.NotEmpty(t, todo1)
+	// set to done to true
+	doneTodo, err := testQueries.ToggleToDoDone(context.Background(), todo1.ID)
+	require.NoError(t, err)
+	require.Equal(t, !todo1.Done, doneTodo.Done)
+
+	// set to done to false
+	falseTodo, err := testQueries.ToggleToDoDone(context.Background(), todo1.ID)
+	require.NoError(t, err)
+	require.Equal(t, !doneTodo.Done, falseTodo.Done)
 
 }

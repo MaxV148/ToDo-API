@@ -90,6 +90,28 @@ func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]Todo,
 	return items, nil
 }
 
+const toggleToDoDone = `-- name: ToggleToDoDone :one
+UPDATE todo
+set done = NOT todo.done
+where id = $1
+RETURNING id, title, content, done, created_by, category, created_at
+`
+
+func (q *Queries) ToggleToDoDone(ctx context.Context, id int64) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, toggleToDoDone, id)
+	var i Todo
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Done,
+		&i.CreatedBy,
+		&i.Category,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateToDo = `-- name: UpdateToDo :one
 UPDATE todo
 set title   = $2,
