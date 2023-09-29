@@ -1,8 +1,12 @@
+-- name: CreateToDo :one
+INSERT INTO todo (title, content, created_by, category)
+VALUES ($1, $2, $3, $4)
+RETURNING *;
+
 -- name: ListToDoForUser :many
 SELECT *
 FROM todo
-WHERE created_by = $1
-LIMIT 1;
+WHERE created_by = $1;
 
 -- name: DeleteToDo :exec
 DELETE

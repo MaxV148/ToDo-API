@@ -9,6 +9,39 @@ import (
 	"context"
 )
 
+const createToDo = `-- name: CreateToDo :one
+INSERT INTO todo (title, content, created_by, category)
+VALUES ($1, $2, $3, $4)
+RETURNING id, title, content, done, created_by, category, created_at
+`
+
+type CreateToDoParams struct {
+	Title     string
+	Content   string
+	CreatedBy int64
+	Category  int64
+}
+
+func (q *Queries) CreateToDo(ctx context.Context, arg CreateToDoParams) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, createToDo,
+		arg.Title,
+		arg.Content,
+		arg.CreatedBy,
+		arg.Category,
+	)
+	var i Todo
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Done,
+		&i.CreatedBy,
+		&i.Category,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteToDo = `-- name: DeleteToDo :exec
 DELETE
 FROM todo
@@ -24,7 +57,6 @@ const listToDoForUser = `-- name: ListToDoForUser :many
 SELECT id, title, content, done, created_by, category, created_at
 FROM todo
 WHERE created_by = $1
-LIMIT 1
 `
 
 func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]Todo, error) {

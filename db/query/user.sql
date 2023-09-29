@@ -4,7 +4,7 @@ FROM "user"
 WHERE username = $1
 LIMIT 1;
 
--- name: CreateAuthor :one
+-- name: CreateUser :one
 INSERT INTO "user" (username, password)
 VALUES ($1, $2)
 RETURNING *;
