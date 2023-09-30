@@ -4,19 +4,24 @@ import (
 	"CheckToDoAPI/utils"
 	"context"
 	"database/sql"
+
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func createRandomUser(t *testing.T) User {
+	password := utils.RandomString(10)
+	hashedPw, err := utils.HashPassword(password)
+	require.NoError(t, err)
 	arg := CreateUserParams{
 		Username: utils.RandomOwner(),
-		Password: utils.RandomPassword(),
+		Password: hashedPw,
 	}
 	user, err := testQueries.CreateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.Equal(t, user.Username, arg.Username)
 	require.Equal(t, user.Password, arg.Password)
+	require.NoError(t, utils.CheckPassword(password, user.Password))
 	require.NotEmpty(t, user.CreatedAt)
 	return user
 
