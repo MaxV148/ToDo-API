@@ -12,11 +12,6 @@ import (
 var testQueries *Queries
 var testDB *sql.DB
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:password@localhost:5432/check_todo?sslmode=disable"
-)
-
 func TestMain(m *testing.M) {
 	var err error
 	config, err := utils.LoadConfig("../..")
