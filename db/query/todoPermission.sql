@@ -13,3 +13,8 @@ WHERE user_id = $1
 SELECT *
 FROM todo
 INNER JOIN todo_permissions ON todo.id = todo_permissions.todo_id AND todo_permissions.user_id = $1;
+
+-- name: GetPermByUser :one
+SELECT *
+FROM todo_permissions
+WHERE user_id = $1;

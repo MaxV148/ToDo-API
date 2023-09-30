@@ -10,6 +10,19 @@ import (
 	"time"
 )
 
+const getPermByUser = `-- name: GetPermByUser :one
+SELECT user_id, todo_id
+FROM todo_permissions
+WHERE user_id = $1
+`
+
+func (q *Queries) GetPermByUser(ctx context.Context, userID int64) (TodoPermission, error) {
+	row := q.db.QueryRowContext(ctx, getPermByUser, userID)
+	var i TodoPermission
+	err := row.Scan(&i.UserID, &i.TodoID)
+	return i, err
+}
+
 const grantUserToToDo = `-- name: GrantUserToToDo :one
 INSERT INTO todo_permissions (user_id, todo_id)
 VALUES ($1, $2)

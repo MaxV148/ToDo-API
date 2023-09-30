@@ -55,4 +55,4 @@ ALTER TABLE "todo_permissions"
     ADD FOREIGN KEY ("user_id") REFERENCES "user" ("id");
 
 ALTER TABLE "todo_permissions"
-    ADD FOREIGN KEY ("todo_id") REFERENCES "todo" ("id");
+    ADD FOREIGN KEY ("todo_id") REFERENCES "todo" ("id") ON DELETE CASCADE;

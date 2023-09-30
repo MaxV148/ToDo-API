@@ -25,3 +25,14 @@ UPDATE todo
 set done = NOT todo.done
 where id = $1
 RETURNING *;
+
+SELECT * FROM todo
+where id = 13;
+
+select *
+from todo_permissions
+where todo_id = 13;
+
+delete
+from todo
+where id = 13;

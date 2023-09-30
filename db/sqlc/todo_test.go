@@ -3,6 +3,7 @@ package db
 import (
 	"CheckToDoAPI/utils"
 	"context"
+	"database/sql"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -84,5 +85,27 @@ func TestToggleDone(t *testing.T) {
 	falseTodo, err := testQueries.ToggleToDoDone(context.Background(), todo1.ID)
 	require.NoError(t, err)
 	require.Equal(t, !doneTodo.Done, falseTodo.Done)
+
+}
+
+func TestDeleteCascadeOnPermissions(t *testing.T) {
+	author := createRandomUser(t)
+	user1 := createRandomUser(t)
+	todo := createRandomToDo(t, author)
+	// link todo to user
+	perm, err := testQueries.GrantUserToToDo(context.Background(), GrantUserToToDoParams{
+		UserID: user1.ID,
+		TodoID: todo.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, user1.ID, perm.UserID)
+	require.Equal(t, todo.ID, perm.TodoID)
+	// delete todo
+	err = testQueries.DeleteToDo(context.Background(), todo.ID)
+	require.NoError(t, err)
+	// check if entry in permissions table is also deleted
+	perm, err = testQueries.GetPermByUser(context.Background(), user1.ID)
+	require.ErrorIs(t, err, sql.ErrNoRows)
+	require.Empty(t, perm)
 
 }
