@@ -55,7 +55,7 @@ func (q *Queries) ListCategoriesForUser(ctx context.Context, user int64) ([]Cate
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Category
+	items := []Category{}
 	for rows.Next() {
 		var i Category
 		if err := rows.Scan(

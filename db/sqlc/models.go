@@ -25,6 +25,11 @@ type Todo struct {
 	CreatedAt time.Time
 }
 
+type TodoPermission struct {
+	UserID int64
+	TodoID int64
+}
+
 type User struct {
 	ID        int64
 	Username  string

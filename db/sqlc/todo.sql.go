@@ -65,7 +65,7 @@ func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]Todo,
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Todo
+	items := []Todo{}
 	for rows.Next() {
 		var i Todo
 		if err := rows.Scan(
