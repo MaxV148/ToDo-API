@@ -6,6 +6,8 @@ type Config struct {
 	DBDriver      string `mapstructure:"DB_DRIVER"`
 	DBSource      string `mapstructure:"DB_SOURCE"`
 	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
+	APISecret     string `mapstructure:"API_SECRET"`
+	TokenLifespan string `mapstructure:"TOKEN_HOUR_LIFESPAN"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
