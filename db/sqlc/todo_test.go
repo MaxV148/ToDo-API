@@ -42,9 +42,9 @@ func TestListToDoForUser(t *testing.T) {
 	todos, err := testQueries.ListToDoForUser(context.Background(), user.ID)
 	require.NoError(t, err)
 	require.True(t, len(todos) == 3)
-	require.Equal(t, todos[0].CreatedBy, todo1.CreatedBy)
-	require.Equal(t, todos[1].CreatedBy, todo2.CreatedBy)
-	require.Equal(t, todos[2].CreatedBy, todo3.CreatedBy)
+	require.Equal(t, todos[0].Todocreatedby, todo1.CreatedBy)
+	require.Equal(t, todos[1].Todocreatedby, todo2.CreatedBy)
+	require.Equal(t, todos[2].Todocreatedby, todo3.CreatedBy)
 }
 
 func TestDeleteToDo(t *testing.T) {

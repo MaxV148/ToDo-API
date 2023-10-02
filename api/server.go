@@ -22,10 +22,11 @@ func NewServer(store *db.Queries, config utils.Config) *Server {
 	router.POST("/register", server.registerUser)
 	router.POST("/login", server.loginUser)
 	// Task
-	protected := router.Group("/auth")
-	protected.Use(middlewares.JwtAuthMiddleware())
+	protected := router.Group("/", middlewares.JwtAuthMiddleware())
 	protected.POST("/todo", server.createToDo)
 	protected.GET("/todos", server.getAllToDosForCurrentUser)
+	protected.PUT("/todos", server.updateToDoFromCurrentUser)
+	protected.POST("/done", server.makeToDoDoneFromCurrentUser)
 	server.router = router
 	return server
 }

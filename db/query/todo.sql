@@ -4,9 +4,17 @@ VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: ListToDoForUser :many
-SELECT *
+SELECT todo.id         as ToDoId,
+       title           as ToDoTitle,
+       content         as ToDoContent,
+       done,
+       "name"          as categoryName,
+       todo.created_at as ToDoCreatedAt,
+       created_by      as ToDoCreatedBy
 FROM todo
-WHERE created_by = $1;
+         JOIN category on todo.category = category.id
+WHERE created_by = $1
+ORDER BY categoryName DESC;
 
 -- name: DeleteToDo :exec
 DELETE
@@ -26,13 +34,4 @@ set done = NOT todo.done
 where id = $1
 RETURNING *;
 
-SELECT * FROM todo
-where id = 13;
 
-select *
-from todo_permissions
-where todo_id = 13;
-
-delete
-from todo
-where id = 13;

@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createToDo = `-- name: CreateToDo :one
@@ -54,28 +55,46 @@ func (q *Queries) DeleteToDo(ctx context.Context, id int64) error {
 }
 
 const listToDoForUser = `-- name: ListToDoForUser :many
-SELECT id, title, content, done, created_by, category, created_at
+SELECT todo.id         as ToDoId,
+       title           as ToDoTitle,
+       content         as ToDoContent,
+       done,
+       "name"          as categoryName,
+       todo.created_at as ToDoCreatedAt,
+       created_by      as ToDoCreatedBy
 FROM todo
+         JOIN category on todo.category = category.id
 WHERE created_by = $1
+ORDER BY categoryName DESC
 `
 
-func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]Todo, error) {
+type ListToDoForUserRow struct {
+	Todoid        int64
+	Todotitle     string
+	Todocontent   string
+	Done          bool
+	Categoryname  string
+	Todocreatedat time.Time
+	Todocreatedby int64
+}
+
+func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]ListToDoForUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, listToDoForUser, createdBy)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Todo{}
+	items := []ListToDoForUserRow{}
 	for rows.Next() {
-		var i Todo
+		var i ListToDoForUserRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Title,
-			&i.Content,
+			&i.Todoid,
+			&i.Todotitle,
+			&i.Todocontent,
 			&i.Done,
-			&i.CreatedBy,
-			&i.Category,
-			&i.CreatedAt,
+			&i.Categoryname,
+			&i.Todocreatedat,
+			&i.Todocreatedby,
 		); err != nil {
 			return nil, err
 		}
