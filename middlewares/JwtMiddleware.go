@@ -4,9 +4,8 @@ import (
 	"CheckToDoAPI/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"strings"
-
 	"net/http"
+	"strings"
 )
 
 const (

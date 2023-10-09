@@ -43,43 +43,80 @@ func (q *Queries) CreateToDo(ctx context.Context, arg CreateToDoParams) (Todo, e
 	return i, err
 }
 
-const deleteToDo = `-- name: DeleteToDo :exec
+const deleteToDo = `-- name: DeleteToDo :one
 DELETE
 FROM todo
 WHERE id = $1
+  AND created_by = $2
+RETURNING id, title, content, done, created_by, category, created_at
 `
 
-func (q *Queries) DeleteToDo(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteToDo, id)
-	return err
+type DeleteToDoParams struct {
+	ID        int64
+	CreatedBy int64
+}
+
+func (q *Queries) DeleteToDo(ctx context.Context, arg DeleteToDoParams) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, deleteToDo, arg.ID, arg.CreatedBy)
+	var i Todo
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Done,
+		&i.CreatedBy,
+		&i.Category,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const listToDoForUser = `-- name: ListToDoForUser :many
-SELECT todo.id         as ToDoId,
-       title           as ToDoTitle,
-       content         as ToDoContent,
+SELECT todo.id,
+       title,
+       content,
        done,
-       "name"          as categoryName,
-       todo.created_at as ToDoCreatedAt,
-       created_by      as ToDoCreatedBy
+       "name" as CategoryName,
+       todo.created_at,
+       created_by,
+       username
 FROM todo
-         JOIN category on todo.category = category.id
+         LEFT JOIN todo_permissions ON todo.id = todo_permissions.todo_id AND todo_permissions.user_id = $1
+         JOIN category ON todo.category = category.id
+         JOIN "user" ON todo.created_by = "user".id
 WHERE created_by = $1
-ORDER BY categoryName DESC
+   OR todo_permissions.user_id = $1
+ORDER BY
+    CASE WHEN $2 = 'TITLE_ASC' THEN title END,
+    CASE WHEN $2 = 'TITLE_DESC' THEN title END DESC,
+    CASE WHEN $2 = 'DONE_ASC' THEN done END,
+    CASE WHEN $2 = 'DONE_DESC' THEN done END DESC,
+    CASE WHEN $2 = 'CATEGORY_ASC' THEN name END,
+    CASE WHEN $2 = 'CATEGORY_DESC' THEN name END DESC,
+    CASE WHEN $2 = 'CREATED_AT_ASC' THEN todo.created_at END,
+    CASE WHEN $2 = 'CREATED_AT_DESC' THEN todo.created_by END DESC,
+    CASE WHEN $2 = 'AUTHOR_ASC' THEN username END,
+    CASE WHEN $2 = 'AUTHOR_DESC' THEN username END DESC
 `
 
-type ListToDoForUserRow struct {
-	Todoid        int64
-	Todotitle     string
-	Todocontent   string
-	Done          bool
-	Categoryname  string
-	Todocreatedat time.Time
-	Todocreatedby int64
+type ListToDoForUserParams struct {
+	UserID       int64
+	SortingOrder interface{}
 }
 
-func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]ListToDoForUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, listToDoForUser, createdBy)
+type ListToDoForUserRow struct {
+	ID           int64
+	Title        string
+	Content      string
+	Done         bool
+	Categoryname string
+	CreatedAt    time.Time
+	CreatedBy    int64
+	Username     string
+}
+
+func (q *Queries) ListToDoForUser(ctx context.Context, arg ListToDoForUserParams) ([]ListToDoForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listToDoForUser, arg.UserID, arg.SortingOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -88,13 +125,14 @@ func (q *Queries) ListToDoForUser(ctx context.Context, createdBy int64) ([]ListT
 	for rows.Next() {
 		var i ListToDoForUserRow
 		if err := rows.Scan(
-			&i.Todoid,
-			&i.Todotitle,
-			&i.Todocontent,
+			&i.ID,
+			&i.Title,
+			&i.Content,
 			&i.Done,
 			&i.Categoryname,
-			&i.Todocreatedat,
-			&i.Todocreatedby,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}
@@ -133,8 +171,8 @@ func (q *Queries) ToggleToDoDone(ctx context.Context, id int64) (Todo, error) {
 
 const updateToDo = `-- name: UpdateToDo :one
 UPDATE todo
-set title   = $2,
-    content = $3
+SET title   = coalesce($2, title),
+    content = coalesce($3, content)
 WHERE id = $1
 RETURNING id, title, content, done, created_by, category, created_at
 `

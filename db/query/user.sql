@@ -13,3 +13,6 @@ RETURNING *;
 DELETE
 FROM "user"
 WHERE id = $1;
+
+-- name: ListAllUsers :many
+SELECT * from "user";

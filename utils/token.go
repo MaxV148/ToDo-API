@@ -25,17 +25,22 @@ func NewTokenGenerator(config Config) *TokenGenerator {
 	return &TokenGenerator{config: config}
 }
 
-func (t *TokenGenerator) GenerateToken(userId int64) (string, error) {
+func (t *TokenGenerator) GenerateToken(userId int64) (string, int64, error) {
 
 	ttl, _ := strconv.Atoi(t.config.TokenLifespan)
 
+	expiresAt := time.Now().Add(time.Hour * time.Duration(ttl)).Unix()
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims[USERID] = userId
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(ttl)).Unix()
+	claims["exp"] = expiresAt
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(t.config.APISecret))
+	tokenString, err := token.SignedString([]byte(t.config.APISecret))
+	if err != nil {
+		return "", 0, err
+	}
+	return tokenString, expiresAt, err
 }
 
 func TokenValid(token string) (int64, error) {

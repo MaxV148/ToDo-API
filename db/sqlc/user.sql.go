@@ -61,3 +61,35 @@ func (q *Queries) GetUserByName(ctx context.Context, username string) (User, err
 	)
 	return i, err
 }
+
+const listAllUsers = `-- name: ListAllUsers :many
+SELECT id, username, password, created_at from "user"
+`
+
+func (q *Queries) ListAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, listAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Password,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
