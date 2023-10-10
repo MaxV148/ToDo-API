@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"log"
 	"net/http"
 )
@@ -33,17 +34,32 @@ func (server *Server) registerUser(ctx *gin.Context) {
 	}
 	hashedPw, err := utils.HashPassword(req.Password)
 	if err != nil {
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.Abort()
+		return
 	}
 	arg := db.CreateUserParams{Username: req.Username, Password: hashedPw}
 	user, err := server.queries.CreateUser(ctx, arg)
 	if err != nil {
-		// TODO: handle database error
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				ctx.Abort()
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.Abort()
+		return
 	}
 	token, expiresAt, err := server.tokenGenerator.GenerateToken(user.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.Abort()
+		return
 	}
 	ctx.JSON(http.StatusOK, loginResponse{
 		Username: user.Username,
@@ -59,25 +75,30 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	var req userRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.Abort()
+		return
 	}
 	user, err := server.queries.GetUserByName(ctx, req.Username)
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
 			log.Println("user name not in DB: ", req.Username)
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.Abort()
+			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.Abort()
 		return
 	}
 	err = utils.CheckPassword(req.Password, user.Password)
 	if err != nil {
 		log.Printf("password for user: %s not correct.\n", req.Username)
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		ctx.Abort()
 		return
 	}
 
 	accessToken, expiredAt, err := server.tokenGenerator.GenerateToken(user.ID)
-	//utils.SetTokenHeader(ctx, accessToken)
 	ctx.JSON(http.StatusOK, loginResponse{
 		Username: user.Username,
 		UserID:   user.ID,

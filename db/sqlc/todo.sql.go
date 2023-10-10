@@ -94,7 +94,7 @@ ORDER BY
     CASE WHEN $2 = 'CATEGORY_ASC' THEN name END,
     CASE WHEN $2 = 'CATEGORY_DESC' THEN name END DESC,
     CASE WHEN $2 = 'CREATED_AT_ASC' THEN todo.created_at END,
-    CASE WHEN $2 = 'CREATED_AT_DESC' THEN todo.created_by END DESC,
+    CASE WHEN $2 = 'CREATED_AT_DESC' THEN todo.created_at END DESC,
     CASE WHEN $2 = 'AUTHOR_ASC' THEN username END,
     CASE WHEN $2 = 'AUTHOR_DESC' THEN username END DESC
 `

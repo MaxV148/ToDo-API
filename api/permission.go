@@ -2,7 +2,9 @@ package api
 
 import (
 	db "CheckToDoAPI/db/sqlc"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"net/http"
 )
 
@@ -21,6 +23,15 @@ func (server *Server) grandUserToDo(ctx *gin.Context) {
 
 	_, err := server.queries.GrantUserToToDo(ctx, db.GrantUserToToDoParams{UserID: req.UserIDToGrand, TodoID: req.ToDoForGrand})
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				ctx.Abort()
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		ctx.Abort()
 		return
