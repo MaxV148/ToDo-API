@@ -32,7 +32,7 @@ services:
     command: ["/app/main"]
 
   angular:
-    image: maxv148/todo-app:v1
+    build: https://github.com/MaxV148/ToDo-FE.git
     ports:
       - "4200:80"
 
