@@ -12,7 +12,7 @@ FROM alpine:3.18
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate ./migrate
-COPY app.env .
+#COPY app.env .
 COPY start.sh .
 COPY db/migration ./migration
 

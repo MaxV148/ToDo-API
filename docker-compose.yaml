@@ -11,7 +11,8 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=check_todo_prod
-
+    volumes:
+      - db:/var/lib/postgresql/data
   api:
     build:
       context: .
@@ -20,6 +21,10 @@ services:
       - "8000:8000"
     environment:
       - DB_SOURCE_PROD=postgresql://root:password@postgres:5432/check_todo_prod?sslmode=disable
+      - DB_DRIVER=postgres
+      - SERVER_ADDRESS=0.0.0.0:8000
+      - API_SECRET=KP3Hh_odSS-_kXxNDSuJPwtn8LSF_hY6PA7jIoEEN-k
+      - TOKEN_HOUR_LIFESPAN=12
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,3 +35,6 @@ services:
     image: maxv148/todo-app:v1
     ports:
       - "4200:80"
+
+volumes:
+  db:

@@ -1,12 +1,12 @@
 CREATE TABLE "todo"
 (
     "id"         bigserial PRIMARY KEY,
-    "title"      varchar   NOT NULL,
-    "content"    varchar   NOT NULL,
-    "done"       boolean   NOT NULL DEFAULT false,
-    "created_by" bigint    NOT NULL,
-    "category"   bigint    NOT NULL,
-    "created_at" timestamp NOT NULL DEFAULT (now())
+    "title"      varchar     NOT NULL,
+    "content"    varchar     NOT NULL,
+    "done"       boolean     NOT NULL DEFAULT false,
+    "created_by" bigint      NOT NULL,
+    "category"   bigint      NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "user"
@@ -14,15 +14,15 @@ CREATE TABLE "user"
     "id"         bigserial PRIMARY KEY,
     "username"   varchar UNIQUE NOT NULL,
     "password"   varchar        NOT NULL,
-    "created_at" timestamp      NOT NULL DEFAULT (now())
+    "created_at" timestamptz    NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "category"
 (
     "id"         bigserial PRIMARY KEY,
-    "name"       varchar   NOT NULL,
-    "user"       bigint    NOT NULL,
-    "created_at" timestamp NOT NULL DEFAULT (now())
+    "name"       varchar     NOT NULL,
+    "user"       bigint      NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "todo_permissions"

@@ -54,7 +54,6 @@ func (server *Server) getAllToDosForCurrentUser(ctx *gin.Context) {
 	sortingOrder := ctx.DefaultQuery("sorting_order", "TITLE_ASC")
 	todos, err := server.queries.ListToDoForUser(ctx, db.ListToDoForUserParams{UserID: currentUser, SortingOrder: sortingOrder})
 	if err != nil {
-		// TODO: handle database error
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		ctx.Abort()
 		return
