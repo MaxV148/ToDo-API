@@ -15,6 +15,7 @@ func main() {
 		log.Fatalln("cannot load config: ", err)
 	}
 
+	log.Println("CURRENT DATABASE: ", config.DBSourceProd)
 	conn, err := sql.Open(config.DBDriver, config.DBSourceProd)
 	if err != nil {
 		log.Fatalln("cannot connect to DBMS: ", err)
